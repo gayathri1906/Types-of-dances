@@ -1,0 +1,736 @@
+import 'package:flutter/material.dart';
+import 'dart:async';
+
+void main() {
+  runApp(DanceSchoolApp());
+}
+
+class DanceSchoolApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Dance School',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: SplashScreen(),
+      debugShowCheckedModeBanner: false,
+      routes: {
+        '/login': (context) => LoginScreen(),
+        '/registration': (context) => RegistrationScreen(),
+        '/main': (context) => MainScreen(name: 'abc', phone: '123', email: 'a@gmail.com',),
+        '/settings': (context) => SettingsScreen(),
+        '/payment': (context) => PaymentScreen(phone: '1234', card: '1234', account: '1234',), // Added route for PaymentScreen
+      },
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(Duration(seconds: 3), () {
+      Navigator.pushReplacementNamed(context, '/login');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(Icons.directions_run, size: 100),
+            SizedBox(height: 20),
+            Text(
+              'Dance School',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class RegistrationScreen extends StatefulWidget {
+  @override
+  _RegistrationScreenState createState() => _RegistrationScreenState();
+}
+
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Register'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MainScreen(
+                          name: _nameController.text,
+                          phone: _phoneController.text,
+                          email: _emailController.text,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Text('Submit'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+}
+
+
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    Navigator.pushReplacementNamed(context, '/registration');
+                  }
+                },
+                child: Text('Login'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  final String name;
+  final String phone;
+  final String email;
+
+  MainScreen({required this.name, required this.phone, required this.email});
+
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0;
+
+  late List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      HomeScreen(),
+      PaymentScreen(phone: '1234', card: '1234', account: '1234',),
+      ProfileScreen(name: widget.name, phone: widget.phone, email: widget.email),
+    ];
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _widgetOptions.elementAt(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.payment),
+            label: 'Payment',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.blue,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+
+class HomeScreen extends StatelessWidget {
+  final List<String> instructors = [
+    'Alice Johnson',
+    'Bob Smith',
+    'Carol Williams',
+    'David Brown',
+    'Eva Wilson',
+  ];
+
+  final Map<String, List<String>> classes = {
+    'Alice Johnson': ['Ballet', 'Contemporary'],
+    'Bob Smith': ['Hip Hop', 'Break Dance'],
+    'Carol Williams': ['Jazz', 'Folk'],
+    'David Brown': ['Salsa', 'Tango'],
+    'Eva Wilson': ['Ballroom', 'Swing'],
+  };
+
+  final Map<String, List<String>> timings = {
+  'Ballet': [
+    'Monday: 10:00 AM - 12:00 PM, Price: \$19',
+    'Thursday: 2:00 PM - 4:00 PM, Price: \$19'
+  ],
+  'Contemporary': [
+    'Wednesday: 6:00 PM - 8:00 PM, Price: \$20',
+    'Friday: 10:00 AM - 12:00 PM, Price: \$20'
+  ],
+  'Hip Hop': [
+    'Monday: 2:00 PM - 4:00 PM, Price: \$21',
+    'Tuesday: 6:00 PM - 8:00 PM, Price: \$21'
+  ],
+  'Break Dance': [
+    'Thursday: 10:00 AM - 12:00 PM, Price: \$22',
+    'Friday: 4:00 PM - 6:00 PM, Price: \$22'
+  ],
+  'Jazz': [
+    'Tuesday: 10:00 AM - 12:00 PM, Price: \$23',
+    'Wednesday: 2:00 PM - 4:00 PM, Price: \$23'
+  ],
+  'Folk': [
+    'Thursday: 6:00 PM - 8:00 PM, Price: \$22',
+    'Friday: 10:00 AM - 12:00 PM, Price: \$22'
+  ],
+  'Salsa': [
+    'Monday: 4:00 PM - 6:00 PM, Price: \$25',
+    'Tuesday: 2:00 PM - 4:00 PM, Price: \$525'
+  ],
+  'Tango': [
+    'Wednesday: 10:00 AM - 12:00 PM, Price: \$23',
+    'Thursday: 4:00 PM - 6:00 PM, Price: \$23'
+  ],
+  'Ballroom': [
+    'Monday: 6:00 PM - 8:00 PM, Price: \$21',
+    'Tuesday: 10:00 AM - 12:00 PM, Price: \$21'
+  ],
+  'Swing': [
+    'Wednesday: 4:00 PM - 6:00 PM, Price: \$26',
+    'Friday: 2:00 PM - 4:00 PM, Price: \$26'
+  ],
+};
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Dance School'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(
+                'Dance School',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/settings');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.contact_mail),
+              title: Text('Contact Us'),
+              onTap: () {
+                Navigator.pop(context);
+                _showContactUsDialog(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+            ),
+          ],
+        ),
+      ),
+      body: InstructorsList(
+        instructors: instructors,
+        classes: classes,
+        timings: timings,
+      ),
+    );
+  }
+
+  void _showContactUsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Contact Us'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Address: 123 Dance St, City, Country'),
+                Text('Phone: +123 456 7890'),
+                Text('Email: info@danceschool.com'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class InstructorsList extends StatelessWidget {
+  final List<String> instructors;
+  final Map<String, List<String>> classes;
+  final Map<String, List<String>> timings;
+
+  InstructorsList({required this.instructors, required this.classes, required this.timings});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: instructors.map((instructor) {
+        return ListTile(
+          title: Text(instructor),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ClassesList(
+                  instructor: instructor,
+                  classes: classes[instructor]!,
+                  timings: timings,
+                ),
+              ),
+            );
+          },
+        );
+      }).toList(),
+    );
+  }
+}
+
+class ClassesList extends StatelessWidget {
+  final String instructor;
+  final List<String> classes;
+  final Map<String, List<String>> timings;
+
+  ClassesList({required this.instructor, required this.classes, required this.timings});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('$instructor\'s Classes'),
+      ),
+      body: ListView(
+        children: classes.map((danceClass) {
+          return ListTile(
+            title: Text(danceClass),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TimingsList(
+                    danceClass: danceClass,
+                    timings: timings[danceClass]!,
+                  ),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class TimingsList extends StatelessWidget {
+  final String danceClass;
+  final List<String> timings;
+
+  TimingsList({required this.danceClass, required this.timings});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('$danceClass Timings'),
+      ),
+      body: ListView(
+        children: timings.map((timing) {
+          return ListTile(
+            title: Text(timing),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PaymentForm(danceClass: danceClass, timing: timing),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class PaymentForm extends StatefulWidget {
+  final String danceClass;
+  final String timing;
+
+  PaymentForm({required this.danceClass, required this.timing});
+
+  @override
+  _PaymentFormState createState() => _PaymentFormState();
+}
+
+class _PaymentFormState extends State<PaymentForm> {
+  final _formKey = GlobalKey<FormState>();
+  final _phoneController = TextEditingController();
+  final _cardController = TextEditingController();
+  final _accountController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Payment'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              Text('Class: ${widget.danceClass}'),
+              Text('Timing: ${widget.timing}'),
+              TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _cardController,
+                decoration: InputDecoration(labelText: 'Card Number'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your card number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _accountController,
+                decoration: InputDecoration(labelText: 'Account Number'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your account number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    // Show payment successful dialog
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Payment Successful'),
+                        content: Text('Your payment has been processed successfully.'),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close the dialog
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PaymentScreen(
+                                    phone: _phoneController.text,
+                                    card: _cardController.text,
+                                    account: _accountController.text,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+                child: Text('Submit'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _cardController.dispose();
+    _accountController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+}
+
+
+class PaymentScreen extends StatelessWidget {
+  final String phone;
+  final String card;
+  final String account;
+
+  PaymentScreen({required this.phone, required this.card, required this.account});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Payment'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('Phone: $phone'),
+            Text('Card: $card'),
+            Text('Account: $account'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class ProfileScreen extends StatelessWidget {
+  final String name;
+  final String phone;
+  final String email;
+
+  ProfileScreen({required this.name, required this.phone, required this.email});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Profile'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text('Name: $name'),
+            Text('Phone: $phone'),
+            Text('Email: $email'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class SettingsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings'),
+      ),
+      body: Center(
+        child: Text(
+          'Settings Page',
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+    );
+  }
+}
